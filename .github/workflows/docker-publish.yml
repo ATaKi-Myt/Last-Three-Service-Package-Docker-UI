@@ -11,49 +11,36 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          
-      - name: Set build timestamp
-        id: timestamp
-        run: echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-        
-      - name: Build and push Docker image
+
+      - name: Build and push Docker image with SHA tag
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: |
-            lastthree/last-three-service-package-docker-ui:latest
-            lastthree/last-three-service-package-docker-ui:${{ github.sha }}
-          build-args: |
-            BUILD_DATE=${{ env.timestamp }}
-            GITHUB_SHA=${{ github.sha }}
-            GITHUB_REF=${{ github.ref }}
-          labels: |
-            org.opencontainers.image.title=last-three-service-package-docker-ui
-            org.opencontainers.image.description=Docker UI service for Last Three
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.version=${{ github.sha }}
-            org.opencontainers.image.created=${{ env.timestamp }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=MIT
+          tags: lastthree/last-three-service-package-docker-ui:${{ github.sha }}
           pull: true
           cache-to: type=gha,mode=max
-          
-      - name: Pull images for verification
+
+      - name: Pull SHA-tagged image and tag as latest
         run: |
-          docker pull lastthree/last-three-service-package-docker-ui:latest
+          # 从 Docker Hub 拉取 SHA 标签的镜像
           docker pull lastthree/last-three-service-package-docker-ui:${{ github.sha }}
           
+          # 为拉取的镜像添加 latest 标签
+          docker tag lastthree/last-three-service-package-docker-ui:${{ github.sha }} lastthree/last-three-service-package-docker-ui:latest
+          
+          # 推送 latest 标签到 Docker Hub
+          docker push lastthree/last-three-service-package-docker-ui:latest
+
       - name: Verify image digests
         run: |
           echo "Checking image digests:"
@@ -64,16 +51,8 @@ jobs:
           echo "SHA digest: $SHA_DIGEST"
           
           if [ "$LATEST_DIGEST" = "$SHA_DIGEST" ]; then
-            echo "Digests match!"
+            echo "Digests match - both tags point to the same image!"
           else
             echo "Digests do not match!"
             exit 1
           fi
-          
-      - name: Show image history
-        run: |
-          echo "Image history for latest:"
-          docker history lastthree/last-three-service-package-docker-ui:latest
-          
-          echo "Image history for SHA:"
-          docker history lastthree/last-three-service-package-docker-ui:${{ github.sha }}
