@@ -29,4 +29,5 @@ jobs:
           tags: |
             lastthree/last-three-service-package-docker-ui:latest
             lastthree/last-three-service-package-docker-ui:${{ github.sha }}
-          cache-from: none
+          pull: true
+          cache-to: type=gha,mode=max
