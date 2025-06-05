@@ -29,7 +29,7 @@
 docker run -d \
   -p 3000:3000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /vol1/1000/Compose:/app/data \
+  -v ${you_host_path}:/app/data \
   last-three-service-package-docker-ui
 ```
 
