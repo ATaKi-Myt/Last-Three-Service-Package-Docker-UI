@@ -14,11 +14,15 @@ RUN apt-get update && \
     apt-get update && \
     apt-get install -y docker-ce-cli
 
+# 声明构建参数
+ARG BUILD_TIMESTAMP
+
 # 复制package.json和package-lock.json
 COPY package*.json ./
 
 # 安装项目依赖
-RUN npm install
+RUN echo "Build timestamp: ${BUILD_TIMESTAMP}" && \
+    npm install
 
 # 复制项目文件
 COPY . .
@@ -27,4 +31,4 @@ COPY . .
 EXPOSE 3000
 
 # 启动应用
-CMD ["node", "server.js"]    
+CMD ["node", "server.js"]
