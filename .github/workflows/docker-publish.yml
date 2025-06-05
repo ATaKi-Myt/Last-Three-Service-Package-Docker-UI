@@ -4,6 +4,22 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      build_mode:
+        description: 'Build mode'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - development
+          - test
+      no_cache:
+        description: 'Disable cache'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   build-and-push:
@@ -41,3 +57,5 @@ jobs:
           cache-to: type=registry,ref=lastthree/last-three-service-package-docker-ui:buildcache,mode=max
           build-args: |
             BUILD_TIMESTAMP=${{ github.run_id }}-${{ github.run_number }}
+            NODE_ENV=${{ github.event.inputs.build_mode || 'production' }}
+          no-cache: ${{ github.event.inputs.no_cache == 'true' }}
