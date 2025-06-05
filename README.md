@@ -26,6 +26,13 @@
 ### docker 命令行部署
 
 ```bash
+
+# 拉取镜像
+
+docker pull last-three-service-package-docker-ui:latest
+
+# 运行命令
+
 docker run -d \
   -p 3000:3000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
