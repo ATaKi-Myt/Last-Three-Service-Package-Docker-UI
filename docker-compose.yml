@@ -1,1 +1,16 @@
+version: '3'
 
+services:
+  last-three-service-package-docker-ui:
+    image: last-three-service-package-docker-ui:latest
+    container_name: last-three-service-package-docker-ui
+    ports:
+      # 主机端口:容器端口
+      - "3000:3000"
+    volumes:
+      # Docker 套接字映射
+      - /var/run/docker.sock:/var/run/docker.sock
+      # YML 文件存放位置，使用环境变量
+      - ${you_host_path}:/app/data
+    restart: unless-stopped
+    network_mode: bridge
