@@ -5,10 +5,20 @@ const path = require('path');
 const yaml = require('js-yaml');
 const crypto = require('crypto');
 const { exec } = require('child_process');
+const HttpsProxyAgent = require('https-proxy-agent'); // 引入代理模块
 
 const app = express();
 const PORT = 3000;
 const HOST_DIR = '/app/data';
+
+// 获取代理配置
+const getProxyAgent = () => {
+  const proxyEnv = process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+  if (proxyEnv) {
+    return new HttpsProxyAgent(proxyEnv);
+  }
+  return null;
+};
 
 // 确保数据目录存在
 (async () => {
@@ -39,7 +49,7 @@ app.use((req, res, next) => {
 
 // 获取 YAML 文件
 app.post('/api/fetch-yaml', async (req, res) => {
-  const { version, projectFolder = 'fnOS', yamlFileName = '1panel.yml', githubToken } = req.body;
+  const { version, projectFolder = 'fnOS', yamlFileName = '1panel.yml', githubToken, proxyIp, proxyPort } = req.body;
   
   try {
     let repoUrl;
@@ -52,7 +62,11 @@ app.post('/api/fetch-yaml', async (req, res) => {
     }
     
     const headers = githubToken ? { 'Authorization': `token ${githubToken}` } : {};
-    const response = await axios.get(repoUrl, { headers });
+    let agent = getProxyAgent();
+    if (proxyIp && proxyPort) {
+      agent = new HttpsProxyAgent(`http://${proxyIp}:${proxyPort}`);
+    }
+    const response = await axios.get(repoUrl, { headers, httpsAgent: agent });
     
     // 保留原始文件名，不添加哈希前缀
     const fileName = yamlFileName;
@@ -98,6 +112,32 @@ app.post('/api/deploy', (req, res) => {
   });
 });
 
+// 获取容器列表
+app.get('/api/container-list', async (req, res) => {
+  const { version, projectFolder = 'fnOS' } = req.query;
+  try {
+    let repoUrl;
+    if (version === 'Free') {
+      repoUrl = `https://api.github.com/repos/ATaKi-Myt/Last_Three_Service_Package_Free/contents/${projectFolder}`;
+    } else if (version === 'Pro') {
+      repoUrl = `https://api.github.com/repos/ATaKi-Myt/Last_Three_Service_Package_Pro/contents/${projectFolder}`;
+    } else {
+      return res.status(400).json({ error: '无效的版本选择' });
+    }
+    const headers = {
+      'Accept': 'application/vnd.github.v3+json'
+    };
+    let agent = getProxyAgent();
+    const response = await axios.get(repoUrl, { headers, httpsAgent: agent });
+    const yamlFiles = response.data.filter(item => item.name.endsWith('.yml'));
+    const containerList = yamlFiles.map(item => item.name);
+    res.json({ containerList });
+  } catch (error) {
+    console.error('获取容器列表失败:', error);
+    res.status(500).json({ error: '获取容器列表失败', details: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`服务器运行在 http://localhost:${PORT}`);
-});    
+});
