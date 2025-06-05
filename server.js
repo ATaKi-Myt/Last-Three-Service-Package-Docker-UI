@@ -114,7 +114,7 @@ app.post('/api/deploy', (req, res) => {
 
 // 获取容器列表
 app.get('/api/container-list', async (req, res) => {
-  const { version, projectFolder = 'fnOS' } = req.query;
+  const { version, projectFolder = 'fnOS', githubToken } = req.query;
   try {
     let repoUrl;
     if (version === 'Free') {
@@ -127,6 +127,9 @@ app.get('/api/container-list', async (req, res) => {
     const headers = {
       'Accept': 'application/vnd.github.v3+json'
     };
+    if (githubToken) {
+      headers['Authorization'] = `token ${githubToken}`;
+    }
     let agent = getProxyAgent();
     const response = await axios.get(repoUrl, { headers, httpsAgent: agent });
     const yamlFiles = response.data.filter(item => item.name.endsWith('.yml'));
