@@ -49,6 +49,11 @@ jobs:
           pull: true
           cache-to: type=gha,mode=max
           
+      - name: Pull images for verification
+        run: |
+          docker pull lastthree/last-three-service-package-docker-ui:latest
+          docker pull lastthree/last-three-service-package-docker-ui:${{ github.sha }}
+          
       - name: Verify image digests
         run: |
           echo "Checking image digests:"
