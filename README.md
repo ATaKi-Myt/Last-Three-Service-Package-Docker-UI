@@ -35,7 +35,7 @@ docker pull lastthree/last-three-service-package-docker-ui:v1.0.2
 
 ```bash
 docker run -d \
-  --name lastthree-ui \
+  --name last-three-service-package-docker-ui \
   -p 3000:3000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /vol1/1000/Compose:/app/data \
