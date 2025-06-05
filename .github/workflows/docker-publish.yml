@@ -21,38 +21,21 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image with SHA tag
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: lastthree/last-three-service-package-docker-ui
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: lastthree/last-three-service-package-docker-ui:${{ github.sha }}
-          pull: true
-          cache-to: type=gha,mode=max
-
-      - name: Pull SHA-tagged image and tag as latest
-        run: |
-          # 从 Docker Hub 拉取 SHA 标签的镜像
-          docker pull lastthree/last-three-service-package-docker-ui:${{ github.sha }}
-          
-          # 为拉取的镜像添加 latest 标签
-          docker tag lastthree/last-three-service-package-docker-ui:${{ github.sha }} lastthree/last-three-service-package-docker-ui:latest
-          
-          # 推送 latest 标签到 Docker Hub
-          docker push lastthree/last-three-service-package-docker-ui:latest
-
-      - name: Verify image digests
-        run: |
-          echo "Checking image digests:"
-          LATEST_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' lastthree/last-three-service-package-docker-ui:latest)
-          SHA_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' lastthree/last-three-service-package-docker-ui:${{ github.sha }})
-          
-          echo "Latest digest: $LATEST_DIGEST"
-          echo "SHA digest: $SHA_DIGEST"
-          
-          if [ "$LATEST_DIGEST" = "$SHA_DIGEST" ]; then
-            echo "Digests match - both tags point to the same image!"
-          else
-            echo "Digests do not match!"
-            exit 1
-          fi
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=lastthree/last-three-service-package-docker-ui:buildcache
+          cache-to: type=registry,ref=lastthree/last-three-service-package-docker-ui:buildcache,mode=max
