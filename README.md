@@ -23,14 +23,33 @@
 - 已安装 Docker 和 Docker Compose
 - 有可用的 GitHub 仓库，包含 Docker Compose YAML 文件
 
-### 构建 Docker 镜像
-docker build -t last-three-service-package-docker-ui .
-### 运行容器
-docker run -d -p 3000:3000 \
+### docker 命令行部署
+
+```bash
+docker run -d \
+  -p 3000:3000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /path/on/host:/app/data \
+  -v /vol1/1000/Compose:/app/data \
   last-three-service-package-docker-ui
-### 访问应用
+```
+
+### docker-compose 部署
+
+```yml
+version: '3'
+
+services:
+  last-three-service-package-docker-ui:
+    image: last-three-service-package-docker-ui:latest
+    container_name: last-three-service-package-docker-ui
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${you_host_path}:/app/data
+    restart: unless-stopped
+    network_mode: bridge
+```
 
 打开浏览器访问 `http://localhost:3000`
 
