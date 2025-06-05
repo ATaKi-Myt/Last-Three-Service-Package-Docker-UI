@@ -28,7 +28,7 @@
 #### 拉取镜像
 
 ```bash
-docker pull last-three-service-package-docker-ui:latest
+docker pull lastthree/last-three-service-package-docker-ui:latest
 ```
 
 #### 部署容器
