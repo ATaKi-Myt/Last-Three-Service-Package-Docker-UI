@@ -28,18 +28,19 @@
 #### 拉取镜像
 
 ```bash
-docker pull lastthree/last-three-service-package-docker-ui:v1.0.1
+docker pull lastthree/last-three-service-package-docker-ui:v1.0.2
 ```
 
 #### 部署容器
 
 ```bash
 docker run -d \
-  --name last-three-service-package-docker-ui \
+  --name lastthree-ui \
   -p 3000:3000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v ${you_host_path}:/app/data \
-  lastthree/last-three-service-package-docker-ui:v1.0.1
+  -v /vol1/1000/Compose:/app/data \
+  -v /vol1/1000/Downloads:/app/data/downloads \
+  lastthree/last-three-service-package-docker-ui:v1.0.2
 ```
 
 ### docker-compose 部署
@@ -49,13 +50,14 @@ version: '3'
 
 services:
   last-three-service-package-docker-ui:
-    image: lastthree/last-three-service-package-docker-ui:v1.0.1
+    image: lastthree/last-three-service-package-docker-ui:v1.0.2
     container_name: last-three-service-package-docker-ui
     ports:
       - "3000:3000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${you_host_path}:/app/data
+      - ${you_host_downloads_path}:/app/data/downloads
+      - ${you_host_compose_path}:/app/data
     restart: unless-stopped
     network_mode: bridge
 ```
