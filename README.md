@@ -38,7 +38,7 @@ docker run -d \
   -p 3000:3000 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v ${you_host_path}:/app/data \
-  last-three-service-package-docker-ui
+  lastthree/last-three-service-package-docker-ui:latest
 ```
 
 ### docker-compose 部署
@@ -48,7 +48,7 @@ version: '3'
 
 services:
   last-three-service-package-docker-ui:
-    image: last-three-service-package-docker-ui:latest
+    image: lastthree/last-three-service-package-docker-ui:latest
     container_name: last-three-service-package-docker-ui
     ports:
       - "3000:3000"
