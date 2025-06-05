@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
+      darkMode: 'class', // 启用暗色模式
       theme: {
         extend: {
           colors: {
@@ -17,8 +18,12 @@
             secondary: '#E8F3FF',
             accent: '#00B42A',
             danger: '#F53F3F',
-            dark: '#1D2129',
-            light: '#F2F3F5'
+            dark: {
+              100: '#374151',
+              200: '#1F2937',
+              300: '#111827',
+              400: '#030712'
+            }
           },
           fontFamily: {
             inter: ['Inter', 'sans-serif'],
@@ -38,155 +43,238 @@
       .transition-custom {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
+      .scrollbar-thin {
+        scrollbar-width: thin;
+      }
+      .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+      }
+      .scrollbar-thin::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+      .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+      }
+      .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+      }
+      .dark-mode-transition {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      }
+      .truncate-lines-4 {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .flex-grow-with-min {
+        flex-grow: 1;
+        min-height: 0; /* 允许内容溢出时收缩 */
+      }
+      .tooltip {
+        position: relative;
+      }
+      .tooltip::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) scale(0.9);
+        padding: 4px 8px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border-radius: 4px;
+        font-size: 12px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s;
+        white-space: nowrap;
+        z-index: 50;
+      }
+      .tooltip:hover::after {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
     }
   </style>
 </head>
-<body class="font-inter bg-gray-50 text-dark min-h-screen flex flex-col">
-  <!-- 导航栏 -->
-  <header class="bg-white shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <i class="fa fa-docker text-primary text-2xl"></i>
-        <h1 class="text-xl font-bold text-primary">Last_Three_Service_Package_Docker_UI</h1>
-      </div>
-      <div class="flex items-center space-x-4">
-        <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 transition-custom">
-          <i class="fa fa-moon-o text-gray-600"></i>
-        </button>
-        <button id="help-button" class="p-2 rounded-full hover:bg-gray-100 transition-custom">
-          <i class="fa fa-question-circle text-gray-600"></i>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- 主内容区 -->
-  <main class="flex-grow container mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- 左侧面板：配置区域 -->
-      <div class="lg:col-span-1">
-        <div class="bg-white rounded-xl shadow-md p-6 mb-6 transform hover:shadow-lg transition-custom">
-          <h2 class="text-lg font-semibold mb-4 flex items-center">
-            <i class="fa fa-cog text-primary mr-2"></i>GitHub 配置
-          </h2>
-          <form id="fetch-form" class="space-y-4">
-            <div>
-              <label for="version" class="block text-sm font-medium text-gray-700 mb-1">版本选择</label>
-              <select id="version" name="version" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom">
-                <option value="Free">Free 版本</option>
-                <option value="Pro">Pro 版本</option>
-              </select>
-            </div>
-            
-            <div>
-              <label for="projectFolder" class="block text-sm font-medium text-gray-700 mb-1">项目文件夹</label>
-              <input type="text" id="projectFolder" name="projectFolder" value="fnOS" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom">
-            </div>
-            
-            <div>
-              <label for="yamlFileName" class="block text-sm font-medium text-gray-700 mb-1">YAML 文件名</label>
-              <input type="text" id="yamlFileName" name="yamlFileName" value="1panel.yml" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom">
-            </div>
-            
-            <div>
-              <label for="githubToken" class="block text-sm font-medium text-gray-700 mb-1">GitHub APT 令牌 (私有库需要)</label>
-              <input type="password" id="githubToken" name="githubToken" placeholder="输入 GitHub 令牌" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom">
-              <p class="text-xs text-gray-500 mt-1">需要访问私有仓库时填写</p>
-            </div>
-            
-            <button type="submit" id="fetch-button" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-custom flex items-center justify-center">
-              <i class="fa fa-download mr-2"></i> 获取 YAML 文件
-            </button>
-          </form>
+<body class="font-inter bg-gray-50 text-dark dark:bg-dark-300 dark:text-gray-100 flex flex-col dark-mode-transition overflow-x-hidden">
+  <!-- 固定宽度的容器 -->
+  <div class="w-[1920px] mx-auto bg-white dark:bg-dark-300 shadow-2xl min-h-screen">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-md sticky top-0 z-50 dark:bg-dark-200 dark-mode-transition">
+      <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i class="fa fa-docker text-primary text-2xl"></i>
+          <h1 class="text-xl font-bold text-primary">Last_Three_Service_Package_Docker_UI</h1>
         </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6 transform hover:shadow-lg transition-custom">
-          <h2 class="text-lg font-semibold mb-4 flex items-center">
-            <i class="fa fa-info-circle text-primary mr-2"></i> 使用说明
-          </h2>
-          <ul class="space-y-2 text-sm text-gray-700">
-            <li class="flex items-start">
-              <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
-              <span>配置 GitHub 仓库参数并获取 YAML 文件</span>
-            </li>
-            <li class="flex items-start">
-              <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
-              <span>在编辑器中查看或修改 YAML 内容</span>
-            </li>
-            <li class="flex items-start">
-              <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
-              <span>点击"部署"按钮通过 Docker 守护进程创建容器</span>
-            </li>
-            <li class="flex items-start">
-              <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
-              <span>部署日志将显示在右侧面板中</span>
-            </li>
-          </ul>
+        <div class="flex items-center space-x-4">
+          <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-100 transition-custom flex items-center justify-center w-10 h-10">
+            <i class="fa fa-moon-o text-gray-600 dark:text-gray-300 text-lg"></i>
+          </button>
+          <button id="plugin-button" class="px-4 py-2 bg-gray-200 text-gray-400 rounded-lg cursor-not-allowed tooltip" data-tooltip="插件功能暂未开放">
+            插件
+          </button>
+          <button id="help-button" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-100 transition-custom flex items-center justify-center w-10 h-10">
+            <i class="fa fa-question-circle text-gray-600 dark:text-gray-300 text-lg"></i>
+          </button>
         </div>
       </div>
+    </header>
 
-      <!-- 右侧面板：编辑和部署区域 -->
-      <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white rounded-xl shadow-md p-6 transform hover:shadow-lg transition-custom">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold flex items-center">
-              <i class="fa fa-code text-primary mr-2"></i> YAML 编辑器
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 左侧面板：配置区域 -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-xl shadow-md p-6 transform hover:shadow-lg transition-custom flex flex-col h-[900px] dark:bg-dark-200 dark-mode-transition">
+            <h2 class="text-lg font-semibold mb-4 flex items-center">
+              <i class="fa fa-cog text-primary mr-2"></i>GitHub 配置
             </h2>
-            <div class="flex space-x-2">
-              <button id="save-button" class="bg-gray-700 hover:bg-gray-800 text-white font-medium py-1.5 px-3 rounded-lg transition-custom flex items-center text-sm">
-                <i class="fa fa-save mr-1.5"></i> 保存
+            <form id="fetch-form" class="space-y-4 flex-grow-with-min">
+              <div>
+                <label for="version" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">版本选择</label>
+                <select id="version" name="version" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom dark:bg-dark-100 dark:border-gray-700 dark:text-gray-200">
+                  <option value="Free">Free 版本</option>
+                  <option value="Pro">Pro 版本</option>
+                </select>
+              </div>
+              
+              <div>
+                <label for="projectFolder" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">项目文件夹</label>
+                <input type="text" id="projectFolder" name="projectFolder" value="fnOS" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom dark:bg-dark-100 dark:border-gray-700 dark:text-gray-200">
+              </div>
+              
+              <div>
+                <label for="yamlFileName" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">YAML 文件名</label>
+                <input type="text" id="yamlFileName" name="yamlFileName" value="1panel.yml" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom dark:bg-dark-100 dark:border-gray-700 dark:text-gray-200">
+              </div>
+              
+              <div>
+                <label for="githubToken" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">GitHub APT 令牌 (私有库需要)</label>
+                <input type="password" id="githubToken" name="githubToken" placeholder="输入 GitHub 令牌" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom dark:bg-dark-100 dark:border-gray-700 dark:text-gray-200">
+                <p class="text-xs text-gray-500 mt-1 dark:text-gray-400">需要访问私有仓库时填写</p>
+              </div>
+
+              <div>
+                <label for="proxyIp" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">代理 IP</label>
+                <input type="text" id="proxyIp" name="proxyIp" placeholder="输入代理 IP" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom dark:bg-dark-100 dark:border-gray-700 dark:text-gray-200">
+              </div>
+
+              <div>
+                <label for="proxyPort" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">代理端口</label>
+                <input type="text" id="proxyPort" name="proxyPort" placeholder="输入代理端口" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom dark:bg-dark-100 dark:border-gray-700 dark:text-gray-200">
+              </div>
+              
+              <button type="submit" id="fetch-button" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-custom flex items-center justify-center">
+                <i class="fa fa-download mr-2"></i> 获取 YAML 文件
               </button>
-              <button id="deploy-button" class="bg-accent hover:bg-accent/90 text-white font-medium py-1.5 px-3 rounded-lg transition-custom flex items-center text-sm">
-                <i class="fa fa-rocket mr-1.5"></i> 部署
+            </form>
+            
+            <div class="mt-6 bg-white rounded-xl shadow-md p-4 transform hover:shadow-lg transition-custom dark:bg-dark-200 dark:border-gray-700 dark-mode-transition">
+              <h2 class="text-lg font-semibold mb-3 flex items-center">
+                <i class="fa fa-info-circle text-primary mr-2"></i> 使用说明
+              </h2>
+              <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300 truncate-lines-4">
+                <li class="flex items-start">
+                  <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                  <span>配置 GitHub 仓库参数并获取 YAML 文件</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                  <span>在编辑器中查看或修改 YAML 内容</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                  <span>点击"部署"按钮通过 Docker 守护进程创建容器</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                  <span>部署日志将显示在右侧面板中</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中间面板：容器列表 -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-xl shadow-md p-6 transform hover:shadow-lg transition-custom flex flex-col h-[900px] dark:bg-dark-200 dark-mode-transition">
+            <h2 class="text-lg font-semibold mb-4 flex items-center">
+              <i class="fa fa-list text-primary mr-2"></i> 容器列表
+            </h2>
+            <div id="container-list" class="space-y-2 flex-grow overflow-y-auto scrollbar-thin">
+              <p class="text-gray-400 dark:text-gray-500">点击获取容器列表</p>
+            </div>
+            <div class="mt-4">
+              <button id="get-container-list-button" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-custom flex items-center justify-center">
+                <i class="fa fa-refresh mr-2"></i> 获取容器列表
               </button>
             </div>
           </div>
-          
-          <div class="mb-4">
-            <label for="yaml-content" class="block text-sm font-medium text-gray-700 mb-1">当前文件: <span id="current-filename" class="text-primary font-medium">未选择文件</span></label>
-            <textarea id="yaml-content" rows="15" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom" placeholder="YAML 内容将显示在这里..."></textarea>
-          </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md p-6 transform hover:shadow-lg transition-custom">
-          <h2 class="text-lg font-semibold mb-4 flex items-center">
-            <i class="fa fa-terminal text-primary mr-2"></i> 部署日志
-          </h2>
-          <div id="log-container" class="bg-gray-800 text-gray-200 rounded-lg p-4 h-64 overflow-auto font-mono text-sm">
-            <p class="text-gray-400">等待部署操作...</p>
+        <!-- 右侧面板：编辑和部署区域 -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-xl shadow-md p-6 transform hover:shadow-lg transition-custom flex flex-col h-[900px] dark:bg-dark-200 dark-mode-transition">
+            <!-- YAML 编辑器区域 -->
+            <div class="flex-grow-with-min flex flex-col h-[45%]">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-semibold flex items-center">
+                  <i class="fa fa-code text-primary mr-2"></i> YAML 编辑器
+                </h2>
+                <div class="flex space-x-2">
+                  <button id="save-button" class="bg-gray-700 hover:bg-gray-800 text-white font-medium py-1.5 px-3 rounded-lg transition-custom flex items-center text-sm">
+                    <i class="fa fa-save mr-1.5"></i> 保存
+                  </button>
+                  <button id="deploy-button" class="bg-accent hover:bg-accent/90 text-white font-medium py-1.5 px-3 rounded-lg transition-custom flex items-center text-sm">
+                    <i class="fa fa-rocket mr-1.5"></i> 部署
+                  </button>
+                </div>
+              </div>
+              
+              <div class="flex-grow flex flex-col">
+                <label for="yaml-content" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">当前文件: <span id="current-filename" class="text-primary font-medium">未选择文件</span></label>
+                <textarea id="yaml-content" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom flex-grow dark:bg-dark-100 dark:border-gray-700 dark:text-gray-200" placeholder="YAML 内容将显示在这里..."></textarea>
+              </div>
+            </div>
+
+            <!-- 部署日志区域 -->
+            <div class="mt-4 flex-grow-with-min flex flex-col h-[55%]">
+              <h2 class="text-lg font-semibold mb-3 flex items-center">
+                <i class="fa fa-terminal text-primary mr-2"></i> 部署日志
+              </h2>
+              <div id="log-container" class="bg-gray-800 text-gray-200 rounded-lg p-4 flex-grow overflow-auto font-mono text-sm scrollbar-thin dark:bg-dark-400 dark-mode-transition">
+                <p class="text-gray-400">等待部署操作...</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
 
-  <!-- 页脚 -->
-  <footer class="bg-white border-t border-gray-200 py-4">
-    <div class="container mx-auto px-4">
-      <div class="flex flex-col md:flex-row justify-between items-center">
-        <p class="text-gray-600 text-sm">© 2025 Last_Three_Service_Package_Docker_UI. 保留所有权利。</p>
-        <div class="flex space-x-4 mt-3 md:mt-0">
-          <a href="#" class="text-gray-600 hover:text-primary transition-custom">
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-4 dark:bg-dark-200 dark:border-gray-700 dark-mode-transition">
+      <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <p class="text-gray-600 text-sm dark:text-gray-400">© 2025 Last_Three_Service_Package_Docker_UI. 保留所有权利。</p>
+          <a href="https://github.com/ATaKi-Myt/Last-Three-Service-Package-Docker-UI" target="_blank" class="mt-3 md:mt-0 text-gray-600 hover:text-primary transition-custom dark:text-gray-400 dark:hover:text-primary">
             <i class="fa fa-github text-lg"></i>
           </a>
-          <a href="#" class="text-gray-600 hover:text-primary transition-custom">
-            <i class="fa fa-question-circle text-lg"></i>
-          </a>
-          <a href="#" class="text-gray-600 hover:text-primary transition-custom">
-            <i class="fa fa-envelope text-lg"></i>
-          </a>
         </div>
       </div>
-    </div>
-  </footer>
+    </footer>
+  </div>
 
   <!-- 加载模态框 -->
   <div id="loading-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full transform transition-all">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full transform transition-all dark:bg-dark-200 dark-mode-transition">
       <div class="flex flex-col items-center">
         <div class="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4"></div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">请稍候</h3>
-        <p id="loading-message" class="text-gray-600 text-center">正在处理请求...</p>
+        <h3 class="text-lg font-medium text-gray-900 mb-2 dark:text-gray-200">请稍候</h3>
+        <p id="loading-message" class="text-gray-600 text-center dark:text-gray-400">正在处理请求...</p>
       </div>
     </div>
   </div>
@@ -218,8 +306,41 @@
     const successMessage = document.getElementById('success-message');
     const errorToast = document.getElementById('error-toast');
     const errorMessage = document.getElementById('error-message');
+    const containerListDiv = document.getElementById('container-list');
+    const getContainerListButton = document.getElementById('get-container-list-button');
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('i');
     
     let currentFile = null;
+    
+    // 初始化主题
+    function initTheme() {
+      // 检查本地存储中的主题偏好
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDarkMode)) {
+        document.documentElement.classList.add('dark');
+        themeIcon.classList.replace('fa-moon-o', 'fa-sun-o');
+      } else {
+        document.documentElement.classList.remove('dark');
+        themeIcon.classList.replace('fa-sun-o', 'fa-moon-o');
+      }
+    }
+    
+    // 切换主题
+    function toggleTheme() {
+      const isDarkMode = document.documentElement.classList.toggle('dark');
+      
+      // 更新图标
+      if (isDarkMode) {
+        themeIcon.classList.replace('fa-moon-o', 'fa-sun-o');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        themeIcon.classList.replace('fa-sun-o', 'fa-moon-o');
+        localStorage.setItem('theme', 'light');
+      }
+    }
     
     // 显示加载模态框
     function showLoading(message = '正在处理请求...') {
@@ -391,20 +512,71 @@
         console.error(error);
       }
     });
+
+    // 获取容器列表
+    getContainerListButton.addEventListener('click', async () => {
+      const version = document.getElementById('version').value;
+      const projectFolder = document.getElementById('projectFolder').value;
+      showLoading('正在获取容器列表...');
+      try {
+        const response = await fetch(`/api/container-list?version=${version}&projectFolder=${projectFolder}`);
+        if (!response.ok) {
+          throw new Error(await response.text() || '获取容器列表失败');
+        }
+        const data = await response.json();
+        containerListDiv.innerHTML = '';
+        data.containerList.forEach(item => {
+          const listItem = document.createElement('div');
+          listItem.className = 'bg-gray-100 p-2 rounded-md hover:bg-gray-200 cursor-pointer dark:bg-dark-100 dark:hover:bg-dark-100/70 dark:text-gray-300';
+          listItem.textContent = item;
+          listItem.addEventListener('click', async () => {
+            showLoading('正在从 GitHub 获取 YAML 文件...');
+            const formValues = {
+              version,
+              projectFolder,
+              yamlFileName: item
+            };
+            try {
+              const response = await fetch('/api/fetch-yaml', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formValues)
+              });
+              if (!response.ok) {
+                throw new Error(await response.text() || '获取 YAML 文件失败');
+              }
+              const data = await response.json();
+              currentFile = data.fileName;
+              currentFilename.textContent = data.fileName;
+              yamlContent.value = data.content;
+              hideLoading();
+              showSuccess('YAML 文件获取成功');
+            } catch (error) {
+              hideLoading();
+              showError(`获取 YAML 文件失败: ${error.message}`);
+              console.error(error);
+            }
+          });
+          containerListDiv.appendChild(listItem);
+        });
+        hideLoading();
+        showSuccess('容器列表获取成功');
+      } catch (error) {
+        hideLoading();
+        showError(`获取容器列表失败: ${error.message}`);
+        console.error(error);
+      }
+    });
     
     // 初始化页面
     document.addEventListener('DOMContentLoaded', () => {
+      // 初始化主题
+      initTheme();
+      
       // 主题切换功能
-      const themeToggle = document.getElementById('theme-toggle');
-      themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        const icon = themeToggle.querySelector('i');
-        if (icon.classList.contains('fa-moon-o')) {
-          icon.classList.replace('fa-moon-o', 'fa-sun-o');
-        } else {
-          icon.classList.replace('fa-sun-o', 'fa-moon-o');
-        }
-      });
+      themeToggle.addEventListener('click', toggleTheme);
       
       // 帮助按钮功能
       const helpButton = document.getElementById('help-button');
@@ -414,4 +586,4 @@
     });
   </script>
 </body>
-</html>    
+</html>
